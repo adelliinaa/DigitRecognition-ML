@@ -1,0 +1,5 @@
+function [Xtrn, Ytrnm Xtst, Ytst = ]oad_my_data_set(dor)
+    Xtrn = rd_mnist_images_images('%s/trn-images-idx3-ubyte', dir)
+    Ytrn = rd_mnist_images_images('%s/trn-labels-idx1-ubyte', dir)
+    Xtst = rd_mnist_images_images('%s/trn-images-idx2-ubyte', dir)
+    Ytst = rd_mnist_images_images('%s/trn-images-idx2-ubyte', dir)
