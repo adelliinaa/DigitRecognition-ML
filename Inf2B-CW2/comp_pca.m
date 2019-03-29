@@ -1,6 +1,7 @@
 function [EVecs, EVals] = comp_pca(X)
-%Lab 3, page 7-9
-    Cov = calc_Cov(X);
+    %Lab 3, page 7-9
+    X2 = double(X)./255.0;
+    Cov = calc_Cov(X2);
     [PC,V] = eig(Cov);
     for x = 1: size(PC, 2)
         if PC(1,x)<0
@@ -10,9 +11,9 @@ function [EVecs, EVals] = comp_pca(X)
     % extract diagonal of matrix as vector
     V = diag(V);
     % sort the variances in decreasing order
-    [tmp, ridx] = sort(V, 1, "descend");
+    [tmp, ridx] = sort(V, 1, 'descend');
     V = V(ridx);
     PC = PC(:, ridx);
-    Vecs = V;
-    EVals = PC;
+    EVecs = PC;
+    EVals = V;
 end

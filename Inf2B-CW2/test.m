@@ -15,4 +15,6 @@ Xtst2 = double(Xtst)./255.0;
 %K = 10;
 %[CM, acc] = comp_confmat(Ytrn2, Ypreds2, K);
 
-my_kMeansClustering(Xtrn2, 5, Xtrn(1:5,:), 40);
+Ks = [1,3,5,10,20];
+%[Ypreds]=my_knn_classify(Xtrn2, Ytrn2, Xtst2, Ks.');
+task1_5(Xtrn2,Ks);

@@ -13,7 +13,7 @@ Ypreds = zeros(N, L);
 eucl_dist = square_dist(Xtest, Xtrain);
 
 [d, idx] = sort(eucl_dist, 2, 'ascend');
-s
+
 for i=1:L
     k = Ks(i, 1);
     idx_neighbours = idx(:, i:k) %get indices of the k nearest neighbours 
