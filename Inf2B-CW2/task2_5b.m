@@ -3,7 +3,7 @@
 %
 % load the data set
 %   NB: replace <UUN> with your actual UUN.
-load('/afs/inf.ed.ac.uk/group/teaching/inf2b/cwk2/d/s1643102/data.mat');
+load('/afs/inf.ed.ac.uk/group/teaching/inf2b/cwk2/d/s1728470/data.mat');
 
 % Feature vectors: Convert uint8 data to double, and divide by 255.
 Xtrn = double(dataset.train.images) ./ 255.0;
