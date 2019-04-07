@@ -1,47 +1,27 @@
-function [Cpreds, Ms, Covs] = my_gaussian_classify(Xtrn, Ctrn, Xtst, epsilon)
-% Input:
-%   Xtrn : M-by-D training data matrix
-%   Ctrn : M-by-1 label vector for Xtrn
-%   Xtst : N-by-D test data matrix
-%   epsilon : A scalar parameter for regularisation
-% Output:
-%  Cpreds : N-by-1 matrix of predicted labels for Xtst
-%  Ms    : D-by-K matrix of mean vectors
-%  Covs  : D-by-D-by-K 3D array of covariance matrices
-
-% Bayes classification with multivariate Gaussian distributions.
-M = size(Xtrn, 1);
-N = size(Xtst, 1);
-D = size(Xtrn, 2);
-K = length(unique(Ctrn));
-
-Ms = zeros(D,K);
-Covs = zeros(D, D, K);
-
-% Writes the means and covariance matrices for each class in Ms and Covs
-% respectively.
-for class=1:K 
-  train_class = Xtrn((Ctrn == class), :); % matrix containing all the train samples of a given class
-  mu = myMean(train_class);
-  sigma = myCov(train_class, mu);
-  Ms(:, class) = mu';
-  Covs(:, :, class) = sigma;
-end
-
-post_probability = zeros(K, N);
-
-% Computes the posterior probability for each class for each sample of the
-% test dataset.
-for class=1:K
-    mu = Ms(:, class);
-    mu = mu.';
-    sigma = Covs(:, :, class);
-    sigma = sigma + epsilon * eye(D);
-    X = Xtst - ones(N, 1) * mu;
-    fact = sum(((X * inv(sigma)) .* X), 2);
-    post_probability(class, :) = -0.5 * fact - 0.5 * logdet(sigma) + log(1/K);
-end
-
-[~, Cpreds] = max(post_probability.', [], 2);
-
-end
+function task2_5(Xtrain, Ytrain, Xtest, Ytest, epsilon)
+	% Input:
+	% Xtrain : M-by-D training data matrix (double)
+	% Ytrain : M-by-1 label vector (unit8) for Xtrain
+	% Xtest : N-by-D test data matrix (double)
+	% Ytest : N-by-1 label vector (unit8) for Xtest
+	% epsilon : a scalar variable (double) for covariance regularisation
+	
+	numSamples = size(Xtest,1);
+	
+	tic
+	[Ypreds, Ms, Covs] = run_gaussian_classifiers(Xtrain, Ytrain, Xtest, epsilon);
+	time = toc;
+	fprintf('Number of test samples: %d\n',numSamples);
+	fprintf('User time taken in seconds: %.2f\n',time);
+	[cm, acc] = comp_confmat(Ytest,Ypreds(:,1));
+	fprintf('Accuracy: %.4f\n',acc);
+	fprintf('Number of wrongly classified test samples: %d\n',numSamples-sum(diag(cm)));
+	save('task2_5_cm.mat','cm');
+	M10 = Ms(10,:);
+	Cov10 = reshape(Covs(10,:,:),784,784);
+	save('task2_5_m10.mat','M10');
+	save('task2_5_cov10.mat','Cov10');
+	
+	
+	
+	end

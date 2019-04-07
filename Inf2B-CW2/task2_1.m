@@ -1,36 +1,19 @@
-function task2_1(Xtrn, Ytrn, Xtest, Ytest, Ks)
+function task2_1(Xtrain, Ytrain, Xtest, Ytest, Ks)
 
-load('/afs/inf.ed.ac.uk/group/teaching/inf2b/cwk2/d/s1728470/data.mat');
-	
-	% Feature vectors: Convert uint8 data to double, and divide by 255.
-	Xtrn = double(dataset.train.images) ./ 255.0;
-	Xtst = double(dataset.test.images) ./ 255.0;
-	% Labels
-	Ctrn = dataset.train.labels;
-	Ctst = dataset.test.labels;
-	
-	%YourCode - Prepare measuring time
+	numSamples = size(Xtest,1);
+	for i=1:size(Ks,2)
 	tic
-	
-	% Run K-NN classification
-	Ks = [1,3,5,10,20];
-	Cpreds = my_knn_classify(Xtrn, Ytrn, Xtst, Ks.');
-	
-	%YourCode - Measure the time taken, and display it.
-	toc
-	
-	%YourCode - Get confusion matrix and accuracy for each k in kb.
-	for i=1: length(Ks)
-	k = Ks(i);
-	[cm,acc] = comp_confmat(Ytst, Ypreds(:, i), k);
+	Ypreds = run_knn_classifier(Xtrain, Ytrain, Xtest,Ks(i));
+	time = toc;
+	fprintf('Number of nearest neighbours: %d \n',Ks(i));
+	fprintf('Number of test samples: %d\n',numSamples);
+	fprintf('User time taken in seconds: %.2f\n',time);
+	[cm, acc] = comp_confmat(Ytest,Ypreds(:,1));
+	fprintf('Accuracy: %.4f\n',acc);
+	fprintf('Number of wrongly classified test samples: %d\n',numSamples-sum(diag(cm)));
+	save(sprintf('task2_1_cm%d.mat',Ks(i)));
 	    
-	    %YourCode - Save each confusion matrix.
-	fname = sprintf ( '%s%i', 'cm', k );
-	save(fname, 'cm');
+	end
+
 	
-	    %YourCode - Display the required information - k, N, Nerrs, acc for
-	    % each element of kb.
-	display = sprintf('K: %d, N: %d, Number of errors: %d, Accuracy: %.4f', k, size(Xtst,1), sum(sum(cm)) - trace(cm), acc);
-	disp(display);
-	    
 	end

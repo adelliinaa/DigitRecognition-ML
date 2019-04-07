@@ -1,24 +1,14 @@
 function [Ypreds] = run_knn_classifier(Xtrain, Ytrain, Xtest, Ks)
-%Input: Xtrain = M-by-D training data matrix 
-%       Ytrain = M-by-1 label vector for Xtrain
-%       Xtest  = N-by-D test data matrix 
-%       Ks     = 1-by-L vector of the numbers of nearest neighbours in Xtrain
-%Output:Ypreds = N-by-L matrix of predicted labels for Xtest
 
-N = size(Xtest, 1);
-L = size(Ks, 1);
-Ypreds = zeros(N, L);
-
-% distance between each test point and each training observation
-eucl_dist = square_dist(Xtest, Xtrain);
-
-[d, idx] = sort(eucl_dist, 2, 'ascend');
-
-for i=1:L
-    k = Ks(i, 1);
-    idx_neighbours = idx(:, i:k) %get indices of the k nearest neighbours 
-    prediction = mode(Ytrain(idx_neighbours), 1);
-    Ypreds(:, i) = prediction;
+numXtrain = size(Xtrain,1);
+numXtest = size(Xtest,1);
+numL = size(Ks,2);
+distMatr = myDistance(Xtest,Xtrain);
+Ypreds = zeros(numXtest,numL);
+for l=1:numL
+    for i=1:numXtest
+        [d I] = sort(distMatr(i,:), 'ascend');
+        Ypreds(i,l) = mode(Ytrain(I(1:Ks(l))));
+    end
 end
-
 end
