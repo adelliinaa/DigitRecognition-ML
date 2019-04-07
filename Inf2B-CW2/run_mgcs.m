@@ -1,48 +1,39 @@
-
 function [Ypreds, MMs, MCovs] = run_mgcs(Xtrain, Ytrain, Xtest, epsilon, L)
-	% Input:
-	%   Xtrain : M-by-D training data matrix (double)
-	%   Ytrain : M-by-1 label vector for Xtrain (uint8)
-	%   Xtest  : N-by-D test data matrix (double)
-	%   epsilon : A scalar parameter for regularisation (double)
-	%   L      : scalar (integer) of the number of Gaussian distributions per class
-	% Output:
-	%  Ypreds : N-by-1 matrix of predicted labels for Xtest (integer)
-	%  MMs     : (L*K)-by-D matrix of mean vectors (double)
-	%  MCovs   : (L*K)-by-D-by-D 3D array of covariance matrices (double)
-	
-	
-	numClasses = 10;
-	[numTrain, dimTrain] = size(Xtrain);
-	[numTest, dimTest] = size(Xtest);
-	MMs = zeros(numClasses*L,dimTrain);
-	MCovs = zeros(numClasses*L,dimTrain,dimTrain);
-	
-	%Learn parameters
-	clusIndex = 0;
-	for i=1:numClasses
-	    classElements = Xtrain((Ytrain==(i-1)),:);
-	    [C, idx, SSE] = my_kMeansClustering(classElements, L, classElements(1:L,:));
-	     
-	    for clus=1:L
-	        MMs(clusIndex+clus,:) = C(clus,:);
-	        classClusterElements = classElements(idx==clus);
-	        MCovs(clusIndex+clus,:,:) = myCov(classClusterElements);
-	    end
-	    clusIndex = clusIndex + L;
-	end
-	
-	
-	%Classification
-	logProbMatrix = zeros(numClasses*L,numTest);
-	for i=1:numClasses*L
-	   logProbMatrix(i,:) = myLogpdf(MMs(i,:),reshape(MCovs(i,:,:), [dimTrain,dimTrain]), Xtest, epsilon);
-	 end
-	
-	[maxV,maxI] = max(logProbMatrix);
-	Ypreds = (ceil(maxI / L) - ones(1,numTest))'; %Subtract 1 since working with labels zero
-	
-	
-	
-	end
-	
+
+[n d]=size(Xtest);
+MMs = zeros(10*L,d);
+MCovs = zeros(10*L,d,d);
+C=zeros(10*L,1);
+for i=1:10
+    X=Xtrain(Ytrain(:,1)==i-1,:);
+    [~, id, ~] = my_kMeansClustering(X, L, X(1:L,:),100);
+    idx=id';
+    for j=1:L
+        xj=X(idx(:,1)==j,:);
+        MMs(L*(i-1)+j,:)=sum(xj)/size(xj,1);
+        MCovs(L*(i-1)+j,:,:)=reshape(MyCovb(xj)+epsilon*eye(d),1,d,d);
+        C(L*(i-1)+j,1)=size(xj,1);
+    end
+end
+C(:,1)=C(:,1)/size(Xtrain,1);
+l=zeros(n,10*L);
+for i=1:10*L
+    cov=reshape(MCovs(i,:,:),d,d);
+    invcov = inv(cov);
+    de=logdet(cov);
+    save(sprintf('task2_8.mat'),'invcov');
+    for j=1:n
+        x=Xtest(j,:)-MMs(i,:);
+        l(j,i)=-0.5*(x*invcov*x')-0.5*de+log(C(i,1));
+    end
+end
+[~,idx1]=sort(l,2,'descend');
+Ypreds=floor((idx1(:,1)-1)/L);
+end
+
+function X = MyCovb(X)
+n=size(X,1);
+u = sum(X)./n;
+E = bsxfun(@minus,X,u);
+X=1/n * (E' * E);
+end

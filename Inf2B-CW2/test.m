@@ -36,5 +36,6 @@ Ytst2 = double(Ytst)./255.0;
 %task2_3(Xtrn2, Ytrn);
 %task2_5(Xtrn2, Ytrn, Xtst2, Ytst, 0.01);
 %Dmap = task2_6(Xtrn2, Ytrn, 0.01,'task1_3_evecs.mat', 'task1_3_evals.mat', mean(Xtrn2), 200);
-[CM, acc] = task2_7(Xtrn2, Ytrn, Xtst2, Ytst, 0.01, 0.4);
+%[CM, acc] = task2_7(Xtrn2, Ytrn, Xtst2, Ytst, 0.01, 0.4);
+task2_8(Xtrn2, Ytrn, Xtst2, Ytst, 0.01, 2);
 %[Corrs] = task2_4(Xtrn2, Ytrn);
