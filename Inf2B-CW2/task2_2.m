@@ -1,48 +1,37 @@
-function Dmap = task2_2(Xtrain, Ytrain, k, MAT_evecs, MAT_evals, posVec, nbins)
-	% Input:
-	%  X   : M-by-D data matrix (double)
-	%  k   : scalar (integer) - the number of nearest neighbours
-	%  MAT_evecs : MAT filename of eigenvector matrix of D-by-D
-	%  MAT_evals : MAT filename of eigenvalue vector of D-by-1
-	%  posVec    : 1-by-D vector (double) to specity the position of the plane
-	%  nbins     : scalar (integer) - the number of bins for each PCA axis
-	% Output:
-	%  Dmap  : nbins-by-nbins matrix (uint8) - each element represents
-	%	   the cluster number that the point belongs to.
-	
-	
-	load(MAT_evecs,'EVecs');
-	load(MAT_evals,'EVals');
-	numSamples = size(Xtrain,1);
-	mean = sum(Xtrain,1)/numSamples; % row vectors
-	Y1 = EVecs(:,1); %column vectors
-	Y2 = EVecs(:,2);
-	numGridPoints = nbins*nbins;
-	% The means are the projection of the mean onto the 2 principal components
-	meanY1 = mean*Y1;
-	meanY2 = mean*Y2;
-	varY1 = EVals(1,:);
-	varY2 = EVals(2,:);
-	Y1plot = linspace(meanY1-5*sqrt(varY1),meanY2+5*sqrt(varY1), nbins)';
-	Y2plot = linspace(meanY1-5*sqrt(varY2),meanY2+5*sqrt(varY2), nbins)';
-	% Obtain the grid vectors for the two dimensions
-	[Y1v Y2v] = meshgrid(Y1plot, Y2plot);
-	grid2D = [Y1v(:), Y2v(:)]; % Concatenate to get a 2-D point.			  
-	%Dmap = grid2D;
-	% Revert projection into D-Space 
-	projectedGridPoints = zeros(numGridPoints,784);
-	for i=1:numGridPoints
-	    projectedGridPoints(i,:) = (EVecs*padarray(grid2D(i,:),[0 782], 'post')'+posVec')'; % Orthogonality of EVecs implies that the inverse of EVecs is EVecs'
-	end
-	
-	%k-NN Classification
-	Ypreds = run_knn_classifier(Xtrain, Ytrain, projectedGridPoints, k)
-	classesOfPoints = Ypreds(:,1);
+function Dmap = task2_2(X, Y, k, MAT_evecs, MAT_evals, posVec, nbins)
+
+	    load(MAT_evecs,'EVecs');
+	    load(MAT_evals,'EVals');
 	    
-	Dmap = permute(reshape(classesOfPoints,nbins,nbins),[2 1])
+	%% Initialisation
+	    Dmap = zeros(nbins*nbins, 1);
+	    [M D] = size(X);
+	    plot = zeros(nbins*nbins, D);
+	    
+	    %% initialise the 2D plot plane in 784-D vector space
+	    sd_X = sqrt(EVals(1,:)); sd_Y = sqrt(EVals(2,:));
+	    mu = ( EVecs'*(myMean(X)-posVec)' )';
+	    mu_X = mu(:,1);mu_Y = mu(:,2);
+	    
+	    Xplot = linspace(mu_X-5*sd_X, mu_X+5*sd_X, nbins)';
+	    Yplot = linspace(mu_Y-5*sd_Y, mu_Y+5*sd_Y, nbins)';
+	    [Xv, Yv] = meshgrid(Xplot, Yplot);
+	    plot(:,1:2) = [Xv(:) Yv(:)];
+	    
+	    %% Apply pca to the 2D plane to convert it from principle component
+	    %  coordinate system to the original coordinate system 
+	    plot = bsxfun(@plus, (EVecs' \ plot')', posVec);
+	    
+        %% Perform knn classification in the original coordinate system
+	    Dmap = run_knn_classifier(X, Y, plot, [k]);
+	    Dmap = reshape(Dmap, nbins, nbins);
+	    
+	    %% 
+	    colors = random_colours(10);
+	    figure;
+	    [CC,h] = contourf(Xplot(:), Yplot(:), Dmap);
+	    set(h,'LineColor','none');
+	    colormap(colors);
 	
-	% This function will draw the decision boundaries
-	figure
-	[CC,h] = contourf(Y1plot(:), Y2plot(:),reshape(classesOfPoints, length(Y1plot), length(Y2plot)));
-	set(h,'LineColor','none');
-	end
+	%     save(sprintf('task2_2_dmap_%d.mat', k), 'Dmap');
+	endnd
